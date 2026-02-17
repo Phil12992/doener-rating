@@ -208,6 +208,12 @@
         function showOnMap(id) { switchTab('map'); const p = places.find(x => x.id === id); if (p && map) { map.setView([p.lat, p.lng], 14); showToast(`${p.name} markiert!`); } }
         function showModal(id) { document.getElementById(id).classList.add('active'); }
         function hideModal(id) { document.getElementById(id).classList.remove('active'); }
+        function showAddModal() {
+            if (!currentUser) return showToast("Bitte anmelden!");
+            if (!currentUser.isAdmin) return showToast("Nur Admins können hinzufügen!");
+            showModal("addModal");
+        }
+
         function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
     </script>
 </body>
