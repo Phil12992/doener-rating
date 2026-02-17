@@ -55,11 +55,11 @@
         .close-btn { background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer; }
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-        .form-group input, .form-group textarea { width: 100%; padding: 0.7rem; border: 2px solid var(--glass); border-radius: 10px; background: var(--darker); color: var(--light); }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.7rem; border: 2px solid var(--glass); border-radius: 10px; background: var(--darker); color: var(--light); font-size: 1rem; }
         .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
         .star-rating { display: flex; gap: 5px; }
         .star-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: #444; transition: all 0.2s; }
-        .star-btn.active, .star-btn:hover { color: #ffd700; transform: scale(1.1); }
+        .star-btn:hover, .star-btn.active { color: #ffd700; transform: scale(1.15); }
         .image-upload { border: 2px dashed var(--glass); padding: 1.5rem; text-align: center; border-radius: 10px; cursor: pointer; }
         .image-upload:hover { border-color: var(--primary); }
         .image-upload input { display: none; }
@@ -69,7 +69,6 @@
         .fab { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4); }
         .hidden { display: none !important; }
         .detail-image { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem; }
-        .detail-info { margin-bottom: 1rem; }
         .detail-info p { margin-bottom: 0.5rem; }
         @media (max-width: 768px) { .places-grid { grid-template-columns: 1fr; } header { flex-direction: column; gap: 1rem; } }
     </style>
@@ -120,17 +119,18 @@
             <div class="form-group"><label>Beschreibung</label><textarea id="placeDescription" rows="3" placeholder="Was macht den Döner besonders?"></textarea></div>
             <div class="form-group"><label>Bewertung *</label>
                 <div class="star-rating" id="starRating">
-                    <button type="button" class="star-btn" data-value="1" onclick="setRating(1)">⭐</button>
-                    <button type="button" class="star-btn" data-value="2" onclick="setRating(2)">⭐</button>
-                    <button type="button" class="star-btn" data-value="3" onclick="setRating(3)">⭐</button>
-                    <button type="button" class="star-btn" data-value="4" onclick="setRating(4)">⭐</button>
-                    <button type="button" class="star-btn" data-value="5" onclick="setRating(5)">⭐</button>
+                    <span class="star-btn" onclick="setRating(5)">⭐</span>
+                    <span class="star-btn" onclick="setRating(4)">⭐</span>
+                    <span class="star-btn" onclick="setRating(3)">⭐</span>
+                    <span class="star-btn" onclick="setRating(2)">⭐</span>
+                    <span class="star-btn" onclick="setRating(1)">⭐</span>
                 </div>
+                <div id="ratingText" style="color: #888; margin-top: 5px;">Keine Bewertung</div>
             </div>
             <div class="form-group"><label>Bild (optional)</label>
                 <div class="image-upload" onclick="document.getElementById('placeImage').click()"><input type="file" id="placeImage" accept="image/*" onchange="previewImage(event)"><p>📷 Klicken um Bild auszuwählen</p></div><img id="imagePreview">
             </div>
-            <button class="btn btn-primary" style="width:100%;" onclick="addPlace()">Hinzufügen</button>
+            <button class="btn btn-primary" style="width:100%; padding: 1rem; font-size: 1.1rem;" id="addSubmitBtn">Hinzufügen</button>
         </div>
     </div>
     <div class="modal" id="detailModal">
@@ -153,84 +153,119 @@
         let currentUser = JSON.parse(localStorage.getItem('doenerUser')) || null;
         let selectedRating = 0;
         let places = JSON.parse(localStorage.getItem('doenerPlaces')) || [
-            { id: 1, name: 'Döner Palace', ort: 'Frankfurt', adresse: 'Hauptwache 1', preis: 5.50, rating: 4.8, reviews: 23, desc: 'Der beste Döner in Frankfurt! Super lecker und riesige Portionen.', bild: null, autor: 'Admin', lat: 50.1109, lng: 8.6821 },
-            { id: 2, name: "Kadir's Döner", ort: 'Berlin', adresse: 'Alexanderplatz 5', preis: 4.50, rating: 4.5, reviews: 45, desc: 'Sehr günstig und lecker. Immer voll aber es lohnt sich!', bild: null, autor: 'Admin', lat: 52.5218, lng: 13.4135 },
-            { id: 3, name: 'Döner Haus', ort: 'Hamburg', adresse: 'Reeperbahn 123', preis: 6.00, rating: 4.2, reviews: 12, desc: 'Nachts offen, perfekt nach dem Ausgang. Etwas teurer aber gut.', bild: null, autor: 'User', lat: 53.5511, lng: 9.9937 }
+            { id: 1, name: 'Döner Palace', ort: 'Frankfurt', adresse: 'Hauptwache 1', preis: 5.50, rating: 4.8, reviews: 23, desc: 'Der beste Döner in Frankfurt!', bild: null, autor: 'Admin', lat: 50.1109, lng: 8.6821 },
+            { id: 2, name: "Kadir's Döner", ort: 'Berlin', adresse: 'Alexanderplatz 5', preis: 4.50, rating: 4.5, reviews: 45, desc: 'Sehr günstig und lecker.', bild: null, autor: 'Admin', lat: 52.5218, lng: 13.4135 }
         ];
-        let map;
-        init();
-        function init() { updateUI(); renderPlaces(); updateStats(); }
+        let map = null;
+        
+        document.getElementById('addSubmitBtn').onclick = addPlace;
+        
+        function init() {
+            updateUI();
+            renderPlaces();
+            updateStats();
+        }
+        
         function login() {
             const name = document.getElementById('loginUsername').value.trim();
             const pass = document.getElementById('loginPassword').value;
-            if (!name) return showToast('Bitte Namen eingeben!');
-            currentUser = { name, isAdmin: pass === ADMIN_PASS };
+            if (!name) { showToast('Bitte Namen eingeben!'); return; }
+            currentUser = { name: name, isAdmin: pass === ADMIN_PASS };
             localStorage.setItem('doenerUser', JSON.stringify(currentUser));
-            updateUI(); hideModal('loginModal'); showToast(`Willkommen, ${name}!`);
+            updateUI();
+            hideModal('loginModal');
+            showToast('Willkommen, ' + name + '!');
         }
-        function logout() { currentUser = null; localStorage.removeItem('doenerUser'); updateUI(); showToast('Abgemeldet!'); }
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('doenerUser');
+            updateUI();
+            showToast('Abgemeldet!');
+        }
+        
         function updateUI() {
-            const userInfo = document.getElementById('userInfo'), loginBtn = document.getElementById('loginBtn'), badge = document.getElementById('userBadge'), addBtn = document.getElementById('addBtn');
+            const userInfo = document.getElementById('userInfo');
+            const loginBtn = document.getElementById('loginBtn');
+            const badge = document.getElementById('userBadge');
+            const addBtn = document.getElementById('addBtn');
+            
             if (currentUser) {
-                userInfo.classList.add('active'); loginBtn.style.display = 'none';
+                userInfo.classList.add('active');
+                loginBtn.style.display = 'none';
                 document.getElementById('userName').textContent = currentUser.name;
                 document.getElementById('userAvatar').textContent = currentUser.name[0].toUpperCase();
                 badge.style.display = currentUser.isAdmin ? 'inline' : 'none';
                 addBtn.classList.toggle('hidden', !currentUser.isAdmin);
             } else {
-                userInfo.classList.remove('active'); loginBtn.style.display = 'block'; addBtn.classList.add('hidden');
+                userInfo.classList.remove('active');
+                loginBtn.style.display = 'block';
+                addBtn.classList.add('hidden');
             }
         }
+        
         function renderPlaces() {
-            document.getElementById('placesGrid').innerHTML = places.map(p => `
-                <div class="place-card" onclick="showDetail(${p.id})">
-                    <div class="place-image">${p.bild ? `<img src="${p.bild}" style="width:100%;height:100%;object-fit:cover;">` : '🥙'}</div>
-                    <div class="place-content">
-                        <div class="place-header"><div class="place-name">${p.name}</div><div class="place-rating">${p.rating} ⭐</div></div>
-                        <div class="place-location">📍 ${p.ort}</div>
-                        ${p.preis ? `<div class="place-price">💰 ${parseFloat(p.preis).toFixed(2)} €</div>` : ''}
-                        <div class="place-description">${p.desc.substring(0, 80)}${p.desc.length > 80 ? '...' : ''}</div>
-                        <div class="place-footer">
-                            <div class="place-reviews">${p.reviews} Bewertungen</div>
-                            <div class="place-actions" onclick="event.stopPropagation()">
-                                <button class="action-btn" onclick="showOnMap(${p.id})">🗺️</button>
-                                ${currentUser && currentUser.isAdmin ? `<button class="action-btn" onclick="deletePlace(${p.id})">🗑️</button>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            const grid = document.getElementById('placesGrid');
+            grid.innerHTML = places.map(function(p) {
+                return '<div class="place-card" onclick="showDetail(' + p.id + ')">' +
+                    '<div class="place-image">' + (p.bild ? '<img src="' + p.bild + '" style="width:100%;height:100%;object-fit:cover;">' : '🥙') + '</div>' +
+                    '<div class="place-content">' +
+                    '<div class="place-header"><div class="place-name">' + p.name + '</div><div class="place-rating">' + p.rating + ' ⭐</div></div>' +
+                    '<div class="place-location">📍 ' + p.ort + '</div>' +
+                    (p.preis ? '<div class="place-price">💰 ' + parseFloat(p.preis).toFixed(2) + ' €</div>' : '') +
+                    '<div class="place-description">' + (p.desc.length > 80 ? p.desc.substring(0, 80) + '...' : p.desc) + '</div>' +
+                    '<div class="place-footer">' +
+                    '<div class="place-reviews">' + p.reviews + ' Bewertungen</div>' +
+                    '<div class="place-actions" onclick="event.stopPropagation()">' +
+                    '<button class="action-btn" onclick="showOnMap(' + p.id + ')">🗺️</button>' +
+                    (currentUser && currentUser.isAdmin ? '<button class="action-btn" onclick="deletePlace(' + p.id + ')">🗑️</button>' : '') +
+                    '</div></div></div></div>';
+            }).join('');
         }
+        
         function showDetail(id) {
-            const p = places.find(x => x.id === id);
+            const p = places.find(function(x) { return x.id === id; });
             if (!p) return;
             document.getElementById('detailName').textContent = p.name;
-            document.getElementById('detailPrice').textContent = p.preis ? `💰 ${parseFloat(p.preis).toFixed(2)} €` : '';
-            document.getElementById('detailRating').innerHTML = '⭐'.repeat(Math.round(p.rating)) + ` (${p.rating})`;
+            document.getElementById('detailPrice').textContent = p.preis ? '💰 ' + parseFloat(p.preis).toFixed(2) + ' €' : '';
+            document.getElementById('detailRating').innerHTML = '<span style="color:#ffd700">' + '⭐'.repeat(Math.round(p.rating)) + '</span> (' + p.rating + ')';
             document.getElementById('detailLocation').innerHTML = '📍 ' + p.ort;
             document.getElementById('detailAddress').innerHTML = p.adresse ? '📮 ' + p.adresse : '';
             document.getElementById('detailDesc').innerHTML = p.desc || '';
-            document.getElementById('detailAuthor').innerHTML = '👤 Eingetragen von ' + p.autor;
+            document.getElementById('detailAuthor').innerHTML = '👤 Von ' + p.autor;
             const img = document.getElementById('detailImage');
             if (p.bild) { img.src = p.bild; img.style.display = 'block'; } else { img.style.display = 'none'; }
             showModal('detailModal');
         }
-        function setRating(val) { selectedRating = val; updateStarDisplay(); }
-        function updateStarDisplay() {
-            document.querySelectorAll('.star-btn').forEach(btn => {
-                const v = parseInt(btn.dataset.value);
-                btn.classList.toggle('active', v <= selectedRating);
+        
+        function setRating(val) {
+            selectedRating = val;
+            var stars = document.querySelectorAll('.star-btn');
+            stars.forEach(function(star, index) {
+                star.classList.toggle('active', index < val);
             });
+            var texts = ['', '1 Stern', '2 Sterne', '3 Sterne', '4 Sterne', '5 Sterne'];
+            document.getElementById('ratingText').textContent = texts[val];
+            document.getElementById('ratingText').style.color = '#ffd700';
         }
+        
         function addPlace() {
-            if (!currentUser) return showToast('Bitte anmelden!');
-            if (!currentUser.isAdmin) return showToast('Nur Admins können hinzufügen!');
-            const name = document.getElementById('placeName').value.trim();
-            const ort = document.getElementById('placeLocation').value.trim();
-            if (!name || !ort || selectedRating === 0) return showToast('Name, Ort und Bewertung erforderlich!');
-            const newPlace = {
+            console.log('addPlace called');
+            if (!currentUser) { showToast('Bitte anmelden!'); return; }
+            if (!currentUser.isAdmin) { showToast('Nur Admins können hinzufügen!'); return; }
+            
+            var name = document.getElementById('placeName').value.trim();
+            var ort = document.getElementById('placeLocation').value.trim();
+            
+            console.log('name:', name, 'ort:', ort, 'rating:', selectedRating);
+            
+            if (!name) { showToast('Bitte Name eingeben!'); return; }
+            if (!ort) { showToast('Bitte Ort eingeben!'); return; }
+            if (selectedRating === 0) { showToast('Bitte Bewertung auswählen!'); return; }
+            
+            var newPlace = {
                 id: Date.now(),
-                name,
+                name: name,
                 ort: ort,
                 adresse: document.getElementById('placeAddress').value.trim(),
                 preis: document.getElementById('placePrice').value || null,
@@ -242,26 +277,40 @@
                 lat: 50.1109 + (Math.random() - 0.5) * 0.2,
                 lng: 8.6821 + (Math.random() - 0.5) * 0.2
             };
+            
             places.unshift(newPlace);
             localStorage.setItem('doenerPlaces', JSON.stringify(places));
-            renderPlaces(); updateStats(); hideModal('addModal'); resetAddForm(); showToast('Döner hinzugefügt!');
+            renderPlaces();
+            updateStats();
+            hideModal('addModal');
+            resetAddForm();
+            showToast('Döner hinzugefügt!');
         }
+        
         function deletePlace(id) {
-            if (!currentUser || !currentUser.isAdmin) return showToast('Nur Admins können löschen!');
-            if (confirm('Wirklich löschen?')) { places = places.filter(p => p.id !== id); localStorage.setItem('doenerPlaces', JSON.stringify(places)); renderPlaces(); updateStats(); showToast('Gelöscht!'); }
+            if (!currentUser || !currentUser.isAdmin) { showToast('Nur Admins können löschen!'); return; }
+            if (confirm('Wirklich löschen?')) {
+                places = places.filter(function(p) { return p.id !== id; });
+                localStorage.setItem('doenerPlaces', JSON.stringify(places));
+                renderPlaces();
+                updateStats();
+                showToast('Gelöscht!');
+            }
         }
+        
         function previewImage(e) {
-            const file = e.target.files[0];
+            var file = e.target.files[0];
             if (file) {
-                const r = new FileReader();
-                r.onload = (ev) => {
-                    const img = document.getElementById('imagePreview');
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    var img = document.getElementById('imagePreview');
                     img.src = ev.target.result;
                     img.style.display = 'block';
                 };
-                r.readAsDataURL(file);
+                reader.readAsDataURL(file);
             }
         }
+        
         function resetAddForm() {
             document.getElementById('placeName').value = '';
             document.getElementById('placeLocation').value = '';
@@ -271,33 +320,59 @@
             document.getElementById('placeImage').value = '';
             document.getElementById('imagePreview').style.display = 'none';
             selectedRating = 0;
-            updateStarDisplay();
+            setRating(0);
+            document.getElementById('ratingText').textContent = 'Keine Bewertung';
+            document.getElementById('ratingText').style.color = '#888';
         }
+        
         function updateStats() {
             document.getElementById('totalPlaces').textContent = places.length;
-            document.getElementById('totalReviews').textContent = places.reduce((s, p) => s + p.reviews, 0);
-            document.getElementById('avgRating').textContent = places.length ? (places.reduce((s, p) => s + p.rating, 0) / places.length).toFixed(1) : 0;
+            document.getElementById('totalReviews').textContent = places.reduce(function(s, p) { return s + p.reviews; }, 0);
+            var avg = places.length ? (places.reduce(function(s, p) { return s + p.rating; }, 0) / places.length).toFixed(1) : 0;
+            document.getElementById('avgRating').textContent = avg;
         }
+        
         function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelector('.tab[onclick="switchTab(\'' + tab + '\')"]').classList.add('active');
             document.getElementById('listView').style.display = tab === 'list' ? 'block' : 'none';
             document.getElementById('mapView').style.display = tab === 'map' ? 'block' : 'none';
-            if (tab === 'map') setTimeout(initMap, 100);
+            if (tab === 'map' && !map) {
+                setTimeout(initMap, 100);
+            }
         }
+        
         function initMap() {
             if (map) return;
             map = L.map('map').setView([50.1109, 8.6821], 6);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-            places.forEach(p => L.marker([p.lat, p.lng]).addTo(map).bindPopup(`<b>${p.name}</b><br>${p.ort}<br>${p.rating} ⭐`));
+            places.forEach(function(p) {
+                L.marker([p.lat, p.lng]).addTo(map).bindPopup('<b>' + p.name + '</b><br>' + p.ort + '<br>' + p.rating + ' ⭐');
+            });
         }
+        
         function showOnMap(id) {
-            const p = places.find(x => x.id === id);
-            if (p && map) { switchTab('map'); map.setView([p.lat, p.lng], 14); showToast(`${p.name} markiert!`); }
+            var p = places.find(function(x) { return x.id === id; });
+            if (p && map) { switchTab('map'); map.setView([p.lat, p.lng], 14); showToast(p.name + ' markiert!'); }
         }
+        
         function showModal(id) { document.getElementById(id).classList.add('active'); }
         function hideModal(id) { document.getElementById(id).classList.remove('active'); }
-        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+        
+        function showAddModal() {
+            if (!currentUser) { showToast('Bitte anmelden!'); showModal('loginModal'); return; }
+            if (!currentUser.isAdmin) { showToast('Nur Admins können hinzufügen!'); return; }
+            showModal('addModal');
+        }
+        
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 3000);
+        }
+        
+        init();
     </script>
 </body>
 </html>
