@@ -6,118 +6,100 @@
     <title>🥙 Döner Rating</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #ff6b35;
             --primary-dark: #e55a2b;
-            --success: #28a745;
-            --dark: #1a1a1a;
-            --darker: #0d0d0d;
-            --light: #fff;
+            --success: #10b981;
+            --dark: #0f0f0f;
+            --darker: #080808;
+            --card-bg: #1a1a1a;
+            --light: #f5f5f5;
             --gray: #888;
+            --gray-light: #444;
+            --border: rgba(255,255,255,0.08);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--darker); color: var(--light); min-height: 100vh; }
-        
-        /* Header */
-        header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .logo { font-size: 1.5rem; font-weight: bold; }
-        .logo span { color: #ffd700; }
-        .user-area { display: flex; gap: 10px; align-items: center; }
-        .user-info { display: none; align-items: center; gap: 8px; }
+        body { font-family: 'Inter', sans-serif; background: var(--darker); color: var(--light); min-height: 100vh; }
+        header { background: rgba(15,15,15,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 1.4rem; font-weight: 700; }
+        .logo span { color: var(--primary); }
+        .user-area { display: flex; gap: 12px; align-items: center; }
+        .user-info { display: none; align-items: center; gap: 10px; }
         .user-info.active { display: flex; }
-        .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
-        .badge { background: #ffd700; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
-        .btn { padding: 8px 16px; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
-        .btn-primary { background: var(--light); color: var(--primary); }
-        .btn-outline { background: transparent; border: 2px solid var(--light); color: var(--light); }
-        
-        /* Hero */
-        .hero { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 2rem; text-align: center; }
-        .hero h1 { font-size: 2rem; margin-bottom: 5px; }
-        .hero p { opacity: 0.9; font-size: 1rem; }
-        
-        /* Container */
-        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
-        
-        /* Stats */
-        .stats-bar { display: flex; justify-content: center; gap: 2rem; padding: 1.2rem; background: rgba(255,107,53,0.1); border-radius: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-        .stat { text-align: center; min-width: 80px; }
-        .stat-number { font-size: 1.8rem; font-weight: bold; color: var(--primary); }
-        .stat-label { color: var(--gray); font-size: 0.85rem; margin-top: 2px; }
-        
-        /* Tabs */
-        .tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
-        .tab { padding: 10px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: var(--light); cursor: pointer; font-size: 0.95rem; }
-        .tab.active { background: var(--primary); }
-        
-        /* Grid */
-        .places-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
-        .place-card { background: rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); }
-        .place-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-color: var(--primary); }
-        .place-image { width: 100%; height: 140px; object-fit: cover; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
-        .place-content { padding: 1rem; }
-        .place-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 5px; }
-        .place-name { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
-        .place-rating { background: var(--success); padding: 3px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
-        .place-meta { display: flex; gap: 10px; color: var(--gray); font-size: 0.85rem; margin-bottom: 5px; }
-        .place-price { color: #4caf50; font-weight: bold; font-size: 1rem; margin-bottom: 5px; }
-        .place-desc { color: #aaa; font-size: 0.85rem; line-height: 1.4; }
-        
-        /* Map */
-        #map { width: 100%; height: 450px; border-radius: 12px; display: none; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .badge { background: linear-gradient(135deg, #ffd700, #ffb800); color: #000; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+        .btn { padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .btn-primary { background: var(--light); color: var(--dark); }
+        .btn-outline { background: transparent; border: 1.5px solid var(--gray-light); color: var(--light); }
+        .hero { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 3rem 2rem; text-align: center; }
+        .hero h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .stats-bar { display: flex; justify-content: center; gap: 3rem; padding: 1.5rem; background: var(--card-bg); border-radius: 16px; margin-bottom: 2rem; border: 1px solid var(--border); flex-wrap: wrap; }
+        .stat { text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: 700; color: var(--primary); }
+        .stat-label { color: var(--gray); font-size: 0.85rem; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 2rem; }
+        .tab { padding: 12px 20px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--gray); cursor: pointer; font-weight: 500; }
+        .tab.active { background: rgba(255,107,53,0.15); border-color: var(--primary); color: var(--primary); }
+        .places-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        .place-card { background: var(--card-bg); border-radius: 16px; overflow: hidden; cursor: pointer; transition: all 0.3s; border: 1px solid var(--border); }
+        .place-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .place-image { width: 100%; height: 160px; object-fit: cover; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; position: relative; }
+        .place-image img { width: 100%; height: 100%; object-fit: cover; }
+        .place-no-image { font-size: 4rem; }
+        .place-rating-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7); padding: 6px 12px; border-radius: 20px; font-weight: 600; }
+        .place-content { padding: 1.25rem; }
+        .place-name { font-size: 1.2rem; font-weight: 600; margin-bottom: 6px; }
+        .place-meta { color: var(--gray); font-size: 0.9rem; margin-bottom: 8px; }
+        .place-price { color: var(--success); font-weight: 600; font-size: 1.1rem; margin-bottom: 8px; }
+        .place-desc { color: var(--gray); font-size: 0.9rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; overflow: hidden; }
+        #map { width: 100%; height: 600px; border-radius: 16px; display: none; border: 1px solid var(--border); }
         #map.active { display: block; }
-        
-        /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
-        .modal-content { background: var(--dark); padding: 1.5rem; border-radius: 16px; max-width: 420px; width: 92%; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .modal-header h2 { color: var(--primary); font-size: 1.3rem; }
-        .close-btn { background: none; border: none; color: var(--gray); font-size: 1.5rem; cursor: pointer; line-height: 1; }
-        
-        /* Form */
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
-        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.3); color: var(--light); font-size: 1rem; }
+        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 20px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); animation: modalIn 0.3s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-header h2 { font-size: 1.4rem; font-weight: 600; }
+        .close-btn { background: none; border: none; color: var(--gray); font-size: 1.8rem; cursor: pointer; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-group input, .form-group textarea { width: 100%; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--darker); color: var(--light); font-size: 1rem; }
         .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
-        
-        /* Stars */
-        .star-rating { display: flex; gap: 5px; }
-        .star-btn { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #444; transition: all 0.1s; padding: 0; line-height: 1; }
-        .star-btn:hover, .star-btn.active { color: #ffd700; transform: scale(1.1); }
-        
-        /* Image Upload */
-        .image-upload { border: 2px dashed rgba(255,255,255,0.2); padding: 1rem; text-align: center; border-radius: 8px; cursor: pointer; }
+        .star-rating { display: flex; gap: 8px; }
+        .star-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: var(--gray-light); transition: all 0.15s; }
+        .star-btn:hover, .star-btn.active { color: #ffd700; transform: scale(1.15); }
+        .rating-text { margin-top: 8px; font-size: 0.9rem; color: var(--gray); }
+        .image-upload { border: 2px dashed var(--border); padding: 1.5rem; text-align: center; border-radius: 12px; cursor: pointer; background: var(--darker); }
         .image-upload:hover { border-color: var(--primary); }
         .image-upload input { display: none; }
-        #imagePreview { width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none; }
-        
-        /* Buttons */
-        .btn-submit { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
-        .btn-submit:hover { background: var(--primary-dark); }
-        .btn-delete { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
-        
-        /* Toast */
-        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; background: var(--success); color: white; border-radius: 10px; font-weight: 500; transform: translateY(100px); transition: transform 0.3s; z-index: 3000; }
+        #imagePreview { width: 100%; max-height: 120px; object-fit: cover; border-radius: 10px; margin-top: 10px; display: none; }
+        .btn-submit { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .btn-submit:hover { box-shadow: 0 8px 25px rgba(255, 107, 53, 0.35); }
+        .btn-delete { width: 100%; padding: 14px; background: #dc2626; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 12px; }
+        .detail-image { width: 100%; height: 200px; object-fit: cover; border-radius: 14px; margin-bottom: 1rem; }
+        .detail-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; }
+        .detail-stars { font-size: 1.4rem; }
+        .detail-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--gray); }
+        .detail-price { font-size: 1.5rem; font-weight: 700; color: var(--success); margin-bottom: 1rem; }
+        .detail-desc { color: var(--gray-light); line-height: 1.7; margin-bottom: 1rem; padding: 1rem; background: var(--darker); border-radius: 12px; }
+        .detail-author { color: var(--gray); font-size: 0.9rem; }
+        .detail-actions { display: flex; gap: 10px; margin-top: 1rem; }
+        .detail-btn { flex: 1; padding: 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--light); font-weight: 600; cursor: pointer; }
+        .detail-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 24px; background: var(--card-bg); color: var(--light); border-radius: 12px; font-weight: 500; box-shadow: 0 10px 40px rgba(0,0,0,0.4); transform: translateY(100px); transition: all 0.3s; z-index: 3000; border: 1px solid var(--border); }
         .toast.show { transform: translateY(0); }
-        
-        /* FAB */
-        .fab { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255,107,53,0.4); display: none; }
-        .fab.active { display: block; }
+        .btn-fab { position: fixed; bottom: 24px; right: 24px; padding: 16px 24px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 30px rgba(255, 107, 53, 0.35); transition: all 0.3s; z-index: 100; display: none; align-items: center; gap: 8px; }
+        .btn-fab.active { display: flex; }
+        .btn-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255, 107, 53, 0.45); }
         .hidden { display: none !important; }
-        
-        /* Detail Modal */
-        .detail-image { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
-        .detail-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #ccc; }
-        .detail-stars { color: #ffd700; font-size: 1.2rem; }
-        .detail-price { font-size: 1.3rem; color: #4caf50; font-weight: bold; }
-        
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
             .places-grid { grid-template-columns: 1fr; }
-            .stats-bar { gap: 1rem; }
-            .stat-number { font-size: 1.5rem; }
-            header { flex-direction: column; gap: 10px; padding: 1rem; }
+            header { padding: 1rem; }
+            .hero { padding: 2rem 1.5rem; }
+            .hero h1 { font-size: 2rem; }
         }
     </style>
 </head>
@@ -127,40 +109,35 @@
         <div class="user-area">
             <div class="user-info" id="userInfo">
                 <div class="user-avatar" id="userAvatar">👤</div>
-                <span id="userName"></span>
+                <span id="userName" style="font-weight: 500;"></span>
                 <span class="badge" id="userBadge" style="display:none">ADMIN</span>
                 <button class="btn btn-outline" onclick="logout()">Ab</button>
             </div>
             <button class="btn btn-primary" id="loginBtn" onclick="openLogin()">Anmelden</button>
         </div>
     </header>
-    
     <section class="hero">
         <h1>🥙 Döner Rating</h1>
-        <p>Finde den besten Döner in deiner Stadt!</p>
+        <p>Entdecke die besten Dönerbuden in deiner Stadt!</p>
     </section>
-    
     <div class="container">
         <div class="stats-bar">
             <div class="stat"><div class="stat-number" id="totalPlaces">0</div><div class="stat-label">Dönerbuden</div></div>
-            <div class="stat"><div class="stat-number" id="totalReviews">0</div><div class="stat-label">Bewertungen</div></div>
             <div class="stat"><div class="stat-number" id="avgRating">0</div><div class="stat-label">Ø Sterne</div></div>
+            <div class="stat"><div class="stat-number" id="avgPrice">-</div><div class="stat-label">Ø Preis</div></div>
         </div>
-        
         <div class="tabs">
-            <button class="tab active" onclick="showList()">📋 Liste</button>
-            <button class="tab" onclick="showMap()">🗺️ Karte</button>
+            <button class="tab active" onclick="switchTab('list')">📋 Alle Döner</button>
+            <button class="tab" onclick="switchTab('map')">🗺️ Karte</button>
         </div>
-        
         <div id="listView">
             <div class="places-grid" id="placesGrid"></div>
         </div>
         <div id="map"></div>
     </div>
-    
-    <button class="fab" id="addBtn" onclick="openAddModal()">➕ Hinzufügen</button>
-    
-    <!-- Login Modal -->
+    <button class="btn-fab" id="addBtn" onclick="openAddModal()">
+        <span>➕</span> Hinzufügen
+    </button>
     <div class="modal" id="loginModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -178,8 +155,6 @@
             <button class="btn-submit" onclick="doLogin()">Anmelden</button>
         </div>
     </div>
-    
-    <!-- Add Modal -->
     <div class="modal" id="addModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -191,8 +166,12 @@
                 <input type="text" id="placeName" placeholder="z.B. Döner Palace">
             </div>
             <div class="form-group">
-                <label>Ort *</label>
-                <input type="text" id="placeLocation" placeholder="z.B. Frankfurt">
+                <label>Stadt *</label>
+                <input type="text" id="placeCity" placeholder="z.B. Frankfurt">
+            </div>
+            <div class="form-group">
+                <label>Stadtteil</label>
+                <input type="text" id="placeDistrict" placeholder="z.B. Innenstadt">
             </div>
             <div class="form-group">
                 <label>Preis (€)</label>
@@ -200,7 +179,7 @@
             </div>
             <div class="form-group">
                 <label>Beschreibung</label>
-                <textarea id="placeDesc" rows="2" placeholder="Was macht ihn besonders?"></textarea>
+                <textarea id="placeDesc" placeholder="Was macht den Döner besonders?"></textarea>
             </div>
             <div class="form-group">
                 <label>Bewertung *</label>
@@ -211,7 +190,7 @@
                     <button type="button" class="star-btn" onclick="setRating(2)">⭐</button>
                     <button type="button" class="star-btn" onclick="setRating(1)">⭐</button>
                 </div>
-                <div id="ratingText" style="color:#888;margin-top:5px;font-size:0.85rem">Wähle Sterne</div>
+                <div class="rating-text" id="ratingText">Wähle Sterne</div>
             </div>
             <div class="form-group">
                 <label>Bild</label>
@@ -224,61 +203,51 @@
             <button class="btn-submit" onclick="doAddPlace()">Hinzufügen</button>
         </div>
     </div>
-    
-    <!-- Detail Modal -->
     <div class="modal" id="detailModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="detailName">Döner Name</h2>
+                <h2 id="detailName" style="font-size:1.5rem;font-weight:700;">Döner Name</h2>
                 <button class="close-btn" onclick="closeModal('detailModal')">×</button>
             </div>
             <img id="detailImage" class="detail-image" style="display:none">
-            <div id="detailPrice" class="detail-price"></div>
-            <div class="detail-row">
-                <span class="detail-stars" id="detailStars"></span>
-                <span id="detailRating" style="color:#888"></span>
+            <div class="detail-price" id="detailPrice"></div>
+            <div class="detail-header">
+                <div class="detail-stars" id="detailStars"></div>
             </div>
             <div class="detail-row">📍 <span id="detailLocation"></span></div>
-            <div class="detail-row" id="detailAddressRow" style="display:none">📮 <span id="detailAddress"></span></div>
-            <div class="detail-row" id="detailDescRow">📝 <span id="detailDesc"></span></div>
-            <div class="detail-row" style="color:#888;font-size:0.85rem">👤 <span id="detailAuthor"></span></div>
-            <button class="btn-submit" style="margin-top:15px" onclick="showOnMapFromDetail()">🗺️ Auf Karte zeigen</button>
+            <div class="detail-row" id="detailDistrictRow" style="display:none">🏘️ <span id="detailDistrict"></span></div>
+            <div class="detail-desc" id="detailDesc"></div>
+            <div class="detail-author" id="detailAuthor"></div>
+            <div class="detail-actions">
+                <button class="detail-btn" onclick="showOnMapFromDetail()">🗺️ Auf Karte zeigen</button>
+            </div>
             <button class="btn-delete" id="deleteBtn" onclick="doDelete()" style="display:none">🗑️ Löschen</button>
         </div>
     </div>
-    
     <div class="toast" id="toast"></div>
-    
     <script>
-        // Config
         var ADMIN_PASS = 'admin123';
         var currentUser = null;
         var selectedRating = 0;
         var selectedPlaceId = null;
         var map = null;
+        var markers = [];
         
-        // Initial Data
         var places = JSON.parse(localStorage.getItem('doenerPlaces')) || [
-            { id: 1, name: 'Döner Palace', ort: 'Frankfurt', preis: 5.50, rating: 4.8, desc: 'Der beste Döner in Frankfurt!', autor: 'Admin', lat: 50.1109, lng: 8.6821 },
-            { id: 2, name: "Kadir's Döner", ort: 'Berlin', preis: 4.50, rating: 4.5, desc: 'Super günstig und lecker!', autor: 'Admin', lat: 52.5218, lng: 13.4135 },
-            { id: 3, name: 'Döner Haus', ort: 'Hamburg', preis: 6.00, rating: 4.2, desc: 'Nachts offen, perfekt nach dem Ausgang.', autor: 'User', lat: 53.5511, lng: 9.9937 }
+            { id: 1, name: 'Döner Palace', stadt: 'Frankfurt', stadtteil: 'Innenstadt', preis: 5.50, rating: 4.8, desc: 'Der beste Döner in Frankfurt!', autor: 'Admin', lat: 50.1109, lng: 8.6821 },
+            { id: 2, name: "Kadir's Döner", stadt: 'Berlin', stadtteil: 'Mitte', preis: 4.50, rating: 4.5, desc: 'Super günstig und lecker!', autor: 'Admin', lat: 52.5218, lng: 13.4135 },
+            { id: 3, name: 'Döner Haus', stadt: 'Hamburg', stadtteil: 'St. Pauli', preis: 6.00, rating: 4.2, desc: 'Nachts offen, perfekt nach dem Ausgang.', autor: 'User', lat: 53.5511, lng: 9.9937 }
         ];
         
-        // Init
         window.onload = function() {
             loadUser();
             renderPlaces();
             updateStats();
-            initMap();
         };
         
-        // User Functions
         function loadUser() {
             var saved = localStorage.getItem('doenerUser');
-            if (saved) {
-                currentUser = JSON.parse(saved);
-                updateUserUI();
-            }
+            if (saved) { currentUser = JSON.parse(saved); updateUserUI(); }
         }
         
         function updateUserUI() {
@@ -302,19 +271,14 @@
             renderPlaces();
         }
         
-        function openLogin() {
-            document.getElementById('loginModal').classList.add('active');
-        }
+        function openLogin() { document.getElementById('loginModal').classList.add('active'); }
         
         function doLogin() {
             var name = document.getElementById('loginUsername').value.trim();
             var pass = document.getElementById('loginPassword').value;
-            
             if (!name) { showToast('Namen eingeben!'); return; }
-            
             currentUser = { name: name, isAdmin: pass === ADMIN_PASS };
             localStorage.setItem('doenerUser', JSON.stringify(currentUser));
-            
             closeModal('loginModal');
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
@@ -329,23 +293,29 @@
             showToast('Abgemeldet');
         }
         
-        // Place Functions
         function renderPlaces() {
             var grid = document.getElementById('placesGrid');
             var html = '';
             
             for (var i = 0; i < places.length; i++) {
                 var p = places[i];
-                var stars = '';
-                for (var s = 0; s < Math.round(p.rating); s++) stars += '⭐';
+                var locationText = p.stadt;
+                if (p.stadtteil) locationText += ' • ' + p.stadtteil;
                 
                 html += '<div class="place-card" onclick="openDetail(' + p.id + ')">';
-                html += '<div class="place-image">' + (p.bild ? '<img src="' + p.bild + '" style="width:100%;height:100%;object-fit:cover">' : '🥙') + '</div>';
+                html += '<div class="place-image">';
+                if (p.bild) {
+                    html += '<img src="' + p.bild + '">';
+                } else {
+                    html += '<span class="place-no-image">🥙</span>';
+                }
+                html += '<div class="place-rating-badge">' + p.rating + ' ⭐</div>';
+                html += '</div>';
                 html += '<div class="place-content">';
-                html += '<div class="place-header"><div class="place-name">' + p.name + '</div><div class="place-rating">' + p.rating + '</div></div>';
-                html += '<div class="place-meta">📍 ' + p.ort + '</div>';
-                if (p.preis) html += '<div class="place-price">💰 ' + parseFloat(p.preis).toFixed(2) + ' €</div>';
-                html += '<div class="place-desc">' + (p.desc ? p.desc.substring(0, 50) + (p.desc.length > 50 ? '...' : '') : '') + '</div>';
+                html += '<div class="place-name">' + p.name + '</div>';
+                html += '<div class="place-meta">📍 ' + locationText + '</div>';
+                if (p.preis) html += '<div class="place-price">' + parseFloat(p.preis).toFixed(2) + ' €</div>';
+                if (p.desc) html += '<div class="place-desc">' + p.desc + '</div>';
                 html += '</div></div>';
             }
             
@@ -354,13 +324,16 @@
         
         function updateStats() {
             document.getElementById('totalPlaces').textContent = places.length;
-            var total = 0;
-            for (var i = 0; i < places.length; i++) total += places[i].rating;
-            var avg = places.length ? (total / places.length).toFixed(1) : 0;
+            var totalRating = 0, totalPrice = 0, priceCount = 0;
+            for (var i = 0; i < places.length; i++) {
+                totalRating += places[i].rating;
+                if (places[i].preis) { totalPrice += parseFloat(places[i].preis); priceCount++; }
+            }
+            var avg = places.length ? (totalRating / places.length).toFixed(1) : 0;
             document.getElementById('avgRating').textContent = avg;
+            document.getElementById('avgPrice').textContent = priceCount ? (totalPrice / priceCount).toFixed(2) + ' €' : '-';
         }
         
-        // Add Functions
         function openAddModal() {
             if (!currentUser) { showToast('Anmelden!'); openLogin(); return; }
             if (!currentUser.isAdmin) { showToast('Nur Admins!'); return; }
@@ -392,16 +365,17 @@
         
         function doAddPlace() {
             var name = document.getElementById('placeName').value.trim();
-            var ort = document.getElementById('placeLocation').value.trim();
+            var stadt = document.getElementById('placeCity').value.trim();
             
             if (!name) { showToast('Name eingeben!'); return; }
-            if (!ort) { showToast('Ort eingeben!'); return; }
+            if (!stadt) { showToast('Stadt eingeben!'); return; }
             if (selectedRating === 0) { showToast('Sterne auswählen!'); return; }
             
             var newPlace = {
                 id: Date.now(),
                 name: name,
-                ort: ort,
+                stadt: stadt,
+                stadtteil: document.getElementById('placeDistrict').value.trim(),
                 preis: document.getElementById('placePrice').value || null,
                 desc: document.getElementById('placeDesc').value.trim(),
                 rating: selectedRating,
@@ -422,7 +396,8 @@
         
         function resetAddForm() {
             document.getElementById('placeName').value = '';
-            document.getElementById('placeLocation').value = '';
+            document.getElementById('placeCity').value = '';
+            document.getElementById('placeDistrict').value = '';
             document.getElementById('placePrice').value = '';
             document.getElementById('placeDesc').value = '';
             document.getElementById('placeImage').value = '';
@@ -431,7 +406,6 @@
             setRating(0);
         }
         
-        // Detail Functions
         function openDetail(id) {
             var p = null;
             for (var i = 0; i < places.length; i++) {
@@ -441,15 +415,29 @@
             
             selectedPlaceId = id;
             document.getElementById('detailName').textContent = p.name;
-            document.getElementById('detailLocation').textContent = p.ort;
-            document.getElementById('detailStars').textContent = '⭐'.repeat(Math.round(p.rating));
-            document.getElementById('detailRating').textContent = '(' + p.rating + ')';
-            document.getElementById('detailDesc').textContent = p.desc || '-';
-            document.getElementById('detailAuthor').textContent = 'Eingetragen von ' + p.autor;
+            document.getElementById('detailLocation').textContent = p.stadt + (p.stadtteil ? ' • ' + p.stadtteil : '');
+            
+            var stars = '';
+            for (var s = 0; s < Math.round(p.rating); s++) stars += '⭐';
+            document.getElementById('detailStars').textContent = stars + ' (' + p.rating + ')';
+            
+            var districtRow = document.getElementById('detailDistrictRow');
+            if (p.stadtteil) {
+                document.getElementById('detailDistrict').textContent = p.stadtteil;
+                districtRow.style.display = 'flex';
+            } else {
+                districtRow.style.display = 'none';
+            }
             
             var priceEl = document.getElementById('detailPrice');
             if (p.preis) { priceEl.textContent = parseFloat(p.preis).toFixed(2) + ' €'; priceEl.style.display = 'block'; }
             else { priceEl.style.display = 'none'; }
+            
+            var descEl = document.getElementById('detailDesc');
+            if (p.desc) { descEl.textContent = p.desc; descEl.style.display = 'block'; }
+            else { descEl.style.display = 'none'; }
+            
+            document.getElementById('detailAuthor').textContent = '👤 Eingetragen von ' + p.autor;
             
             var img = document.getElementById('detailImage');
             if (p.bild) { img.src = p.bild; img.style.display = 'block'; }
@@ -474,7 +462,7 @@
         }
         
         function showOnMapFromDetail() {
-            showMap();
+            switchTab('map');
             var p = null;
             for (var i = 0; i < places.length; i++) {
                 if (places[i].id === selectedPlaceId) { p = places[i]; break; }
@@ -485,21 +473,18 @@
             }
         }
         
-        // Map Functions
-        function showList() {
-            document.querySelectorAll('.tab')[0].classList.add('active');
-            document.querySelectorAll('.tab')[1].classList.remove('active');
-            document.getElementById('listView').style.display = 'block';
-            document.getElementById('map').classList.remove('active');
-        }
-        
-        function showMap() {
-            document.querySelectorAll('.tab')[0].classList.remove('active');
-            document.querySelectorAll('.tab')[1].classList.add('active');
-            document.getElementById('listView').style.display = 'none';
-            document.getElementById('map').classList.add('active');
-            if (!map) initMap();
-            setTimeout(function() { map.invalidateSize(); }, 100);
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.tab')[tab === 'list' ? 0 : 1].classList.add('active');
+            document.getElementById('listView').style.display = tab === 'list' ? 'block' : 'none';
+            document.getElementById('map').classList.toggle('active', tab === 'map');
+            
+            if (tab === 'map') {
+                setTimeout(function() {
+                    if (!map) initMap();
+                    map.invalidateSize();
+                }, 100);
+            }
         }
         
         function initMap() {
@@ -510,16 +495,13 @@
             
             for (var i = 0; i < places.length; i++) {
                 var p = places[i];
-                L.marker([p.lat, p.lng]).addTo(map).bindPopup('<b>' + p.name + '</b><br>' + p.ort + '<br>' + p.rating + ' ⭐');
+                var marker = L.marker([p.lat, p.lng]).addTo(map);
+                marker.bindPopup('<b>' + p.name + '</b><br>' + p.stadt + (p.stadtteil ? ' • ' + p.stadtteil : '') + '<br>' + p.rating + ' ⭐');
             }
         }
         
-        // Modal Functions
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         
-        // Toast
         function showToast(msg) {
             var t = document.getElementById('toast');
             t.textContent = msg;
