@@ -7,64 +7,118 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        :root { --primary: #ff6b35; --secondary: #f7931e; --dark: #1a1a1a; --darker: #0d0d0d; --light: #fff; --glass: rgba(255, 107, 53, 0.1); --success: #28a745; }
+        :root {
+            --primary: #ff6b35;
+            --primary-dark: #e55a2b;
+            --success: #28a745;
+            --dark: #1a1a1a;
+            --darker: #0d0d0d;
+            --light: #fff;
+            --gray: #888;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, sans-serif; background: var(--darker); color: var(--light); min-height: 100vh; }
-        header { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--darker); color: var(--light); min-height: 100vh; }
+        
+        /* Header */
+        header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         .logo { font-size: 1.5rem; font-weight: bold; }
         .logo span { color: #ffd700; }
-        .user-area { display: flex; gap: 1rem; align-items: center; }
-        .user-info { display: none; align-items: center; gap: 0.5rem; }
+        .user-area { display: flex; gap: 10px; align-items: center; }
+        .user-info { display: none; align-items: center; gap: 8px; }
         .user-info.active { display: flex; }
-        .user-avatar { width: 35px; height: 35px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
-        .badge { background: #ffd700; color: #000; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .badge { background: #ffd700; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
+        .btn { padding: 8px 16px; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
         .btn-primary { background: var(--light); color: var(--primary); }
         .btn-outline { background: transparent; border: 2px solid var(--light); color: var(--light); }
-        .hero { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 3rem 2rem; text-align: center; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-        .stats-bar { display: flex; justify-content: center; gap: 3rem; padding: 1.5rem; background: var(--glass); border-radius: 15px; margin-bottom: 2rem; flex-wrap: wrap; }
-        .stat { text-align: center; }
-        .stat-number { font-size: 2rem; font-weight: bold; color: var(--primary); }
-        .stat-label { color: #888; font-size: 0.9rem; }
-        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
-        .tab { padding: 0.7rem 1.2rem; background: var(--glass); border: none; border-radius: 10px; color: var(--light); cursor: pointer; }
+        
+        /* Hero */
+        .hero { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 2rem; text-align: center; }
+        .hero h1 { font-size: 2rem; margin-bottom: 5px; }
+        .hero p { opacity: 0.9; font-size: 1rem; }
+        
+        /* Container */
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+        
+        /* Stats */
+        .stats-bar { display: flex; justify-content: center; gap: 2rem; padding: 1.2rem; background: rgba(255,107,53,0.1); border-radius: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .stat { text-align: center; min-width: 80px; }
+        .stat-number { font-size: 1.8rem; font-weight: bold; color: var(--primary); }
+        .stat-label { color: var(--gray); font-size: 0.85rem; margin-top: 2px; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+        .tab { padding: 10px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: var(--light); cursor: pointer; font-size: 0.95rem; }
         .tab.active { background: var(--primary); }
-        .places-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-        .place-card { background: var(--glass); border-radius: 15px; overflow: hidden; cursor: pointer; transition: all 0.3s; }
-        .place-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
-        .place-image { width: 100%; height: 180px; object-fit: cover; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
-        .place-content { padding: 1.2rem; }
-        .place-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
-        .place-name { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
-        .place-rating { background: var(--success); padding: 0.2rem 0.6rem; border-radius: 15px; font-weight: bold; font-size: 0.9rem; }
-        .place-location { color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; }
-        .place-price { color: #4caf50; font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; }
-        .place-description { color: #aaa; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem; }
-        .place-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
-        .place-reviews { color: #666; font-size: 0.8rem; }
-        .place-actions { display: flex; gap: 0.5rem; }
-        .action-btn { background: rgba(255,255,255,0.1); border: none; padding: 0.4rem 0.7rem; border-radius: 8px; cursor: pointer; }
-        #map { width: 100%; height: 500px; border-radius: 15px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        
+        /* Grid */
+        .places-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+        .place-card { background: rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+        .place-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-color: var(--primary); }
+        .place-image { width: 100%; height: 140px; object-fit: cover; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        .place-content { padding: 1rem; }
+        .place-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 5px; }
+        .place-name { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
+        .place-rating { background: var(--success); padding: 3px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
+        .place-meta { display: flex; gap: 10px; color: var(--gray); font-size: 0.85rem; margin-bottom: 5px; }
+        .place-price { color: #4caf50; font-weight: bold; font-size: 1rem; margin-bottom: 5px; }
+        .place-desc { color: #aaa; font-size: 0.85rem; line-height: 1.4; }
+        
+        /* Map */
+        #map { width: 100%; height: 450px; border-radius: 12px; display: none; }
+        #map.active { display: block; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: var(--dark); padding: 2rem; border-radius: 20px; max-width: 450px; width: 90%; }
-        .modal-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
-        .modal-header h2 { color: var(--primary); }
-        .close-btn { background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer; }
+        .modal-content { background: var(--dark); padding: 1.5rem; border-radius: 16px; max-width: 420px; width: 92%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .modal-header h2 { color: var(--primary); font-size: 1.3rem; }
+        .close-btn { background: none; border: none; color: var(--gray); font-size: 1.5rem; cursor: pointer; line-height: 1; }
+        
+        /* Form */
         .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; }
-        .form-group input, .form-group textarea { width: 100%; padding: 0.7rem; border: 2px solid var(--glass); border-radius: 10px; background: var(--darker); color: var(--light); }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.3); color: var(--light); font-size: 1rem; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+        
+        /* Stars */
         .star-rating { display: flex; gap: 5px; }
-        .star-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: #444; }
-        .star-btn.active { color: #ffd700; }
-        .image-upload { border: 2px dashed var(--glass); padding: 1rem; text-align: center; border-radius: 10px; cursor: pointer; }
+        .star-btn { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #444; transition: all 0.1s; padding: 0; line-height: 1; }
+        .star-btn:hover, .star-btn.active { color: #ffd700; transform: scale(1.1); }
+        
+        /* Image Upload */
+        .image-upload { border: 2px dashed rgba(255,255,255,0.2); padding: 1rem; text-align: center; border-radius: 8px; cursor: pointer; }
+        .image-upload:hover { border-color: var(--primary); }
         .image-upload input { display: none; }
-        #imagePreview { width: 100%; max-height: 120px; object-fit: cover; border-radius: 10px; margin-top: 0.5rem; display: none; }
-        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: var(--success); color: white; border-radius: 10px; transform: translateY(100px); transition: transform 0.3s; z-index: 3000; }
+        #imagePreview { width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none; }
+        
+        /* Buttons */
+        .btn-submit { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        .btn-submit:hover { background: var(--primary-dark); }
+        .btn-delete { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        
+        /* Toast */
+        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; background: var(--success); color: white; border-radius: 10px; font-weight: 500; transform: translateY(100px); transition: transform 0.3s; z-index: 3000; }
         .toast.show { transform: translateY(0); }
-        .fab { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; }
+        
+        /* FAB */
+        .fab { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255,107,53,0.4); display: none; }
+        .fab.active { display: block; }
         .hidden { display: none !important; }
+        
+        /* Detail Modal */
+        .detail-image { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+        .detail-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #ccc; }
+        .detail-stars { color: #ffd700; font-size: 1.2rem; }
+        .detail-price { font-size: 1.3rem; color: #4caf50; font-weight: bold; }
+        
+        @media (max-width: 600px) {
+            .places-grid { grid-template-columns: 1fr; }
+            .stats-bar { gap: 1rem; }
+            .stat-number { font-size: 1.5rem; }
+            header { flex-direction: column; gap: 10px; padding: 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -77,220 +131,251 @@
                 <span class="badge" id="userBadge" style="display:none">ADMIN</span>
                 <button class="btn btn-outline" onclick="logout()">Ab</button>
             </div>
-            <button class="btn btn-primary" id="loginBtn" onclick="showModal('loginModal')">Anmelden</button>
+            <button class="btn btn-primary" id="loginBtn" onclick="openLogin()">Anmelden</button>
         </div>
     </header>
-    <section class="hero"><h1>🥙 Die beste Döner Liste</h1><p>Entdecke und teile deine Lieblings-Dönerbuden!</p></section>
+    
+    <section class="hero">
+        <h1>🥙 Döner Rating</h1>
+        <p>Finde den besten Döner in deiner Stadt!</p>
+    </section>
+    
     <div class="container">
         <div class="stats-bar">
             <div class="stat"><div class="stat-number" id="totalPlaces">0</div><div class="stat-label">Dönerbuden</div></div>
             <div class="stat"><div class="stat-number" id="totalReviews">0</div><div class="stat-label">Bewertungen</div></div>
             <div class="stat"><div class="stat-number" id="avgRating">0</div><div class="stat-label">Ø Sterne</div></div>
         </div>
+        
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('list')">📋 Liste</button>
-            <button class="tab" onclick="switchTab('map')">🗺️ Karte</button>
+            <button class="tab active" onclick="showList()">📋 Liste</button>
+            <button class="tab" onclick="showMap()">🗺️ Karte</button>
         </div>
-        <div id="listView"><div class="places-grid" id="placesGrid"></div></div>
-        <div id="mapView" style="display:none;"><div id="map"></div></div>
+        
+        <div id="listView">
+            <div class="places-grid" id="placesGrid"></div>
+        </div>
+        <div id="map"></div>
     </div>
-    <button class="fab" id="addBtn" onclick="showAddModal()">➕ Hinzufügen</button>
+    
+    <button class="fab" id="addBtn" onclick="openAddModal()">➕ Hinzufügen</button>
+    
+    <!-- Login Modal -->
     <div class="modal" id="loginModal">
         <div class="modal-content">
-            <div class="modal-header"><h2>👤 Anmelden</h2><button class="close-btn" onclick="hideModal('loginModal')">×</button></div>
-            <div class="form-group"><label>Benutzername *</label><input type="text" id="loginUsername" placeholder="Dein Name"></div>
-            <div class="form-group"><label>Admin-Passwort</label><input type="password" id="loginPassword" placeholder="admin123"></div>
-            <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Anmelden</button>
+            <div class="modal-header">
+                <h2>👤 Anmelden</h2>
+                <button class="close-btn" onclick="closeModal('loginModal')">×</button>
+            </div>
+            <div class="form-group">
+                <label>Benutzername</label>
+                <input type="text" id="loginUsername" placeholder="Dein Name">
+            </div>
+            <div class="form-group">
+                <label>Admin-Passwort</label>
+                <input type="password" id="loginPassword" placeholder="admin123">
+            </div>
+            <button class="btn-submit" onclick="doLogin()">Anmelden</button>
         </div>
     </div>
+    
+    <!-- Add Modal -->
     <div class="modal" id="addModal">
         <div class="modal-content">
-            <div class="modal-header"><h2>➕ Döner hinzufügen</h2><button class="close-btn" onclick="hideModal('addModal')">×</button></div>
-            <div class="form-group"><label>Name *</label><input type="text" id="placeName" placeholder="Döner Palace"></div>
-            <div class="form-group"><label>Ort *</label><input type="text" id="placeLocation" placeholder="Frankfurt"></div>
-            <div class="form-group"><label>Preis €</label><input type="number" id="placePrice" placeholder="5.50" step="0.50"></div>
-            <div class="form-group"><label>Beschreibung</label><textarea id="placeDescription" rows="2" placeholder="Was macht ihn besonders?"></textarea></div>
-            <div class="form-group"><label>Bewertung *</label>
-                <div class="star-rating">
-                    <span class="star-btn" onclick="setRating(5)">⭐</span>
-                    <span class="star-btn" onclick="setRating(4)">⭐</span>
-                    <span class="star-btn" onclick="setRating(3)">⭐</span>
-                    <span class="star-btn" onclick="setRating(2)">⭐</span>
-                    <span class="star-btn" onclick="setRating(1)">⭐</span>
-                </div>
-                <div id="ratingText" style="color:#888;margin-top:5px">Wähle Sterne</div>
+            <div class="modal-header">
+                <h2>➕ Döner hinzufügen</h2>
+                <button class="close-btn" onclick="closeModal('addModal')">×</button>
             </div>
-            <div class="form-group"><label>Bild</label>
+            <div class="form-group">
+                <label>Name *</label>
+                <input type="text" id="placeName" placeholder="z.B. Döner Palace">
+            </div>
+            <div class="form-group">
+                <label>Ort *</label>
+                <input type="text" id="placeLocation" placeholder="z.B. Frankfurt">
+            </div>
+            <div class="form-group">
+                <label>Preis (€)</label>
+                <input type="number" id="placePrice" placeholder="5.50" step="0.50">
+            </div>
+            <div class="form-group">
+                <label>Beschreibung</label>
+                <textarea id="placeDesc" rows="2" placeholder="Was macht ihn besonders?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Bewertung *</label>
+                <div class="star-rating">
+                    <button type="button" class="star-btn" onclick="setRating(5)">⭐</button>
+                    <button type="button" class="star-btn" onclick="setRating(4)">⭐</button>
+                    <button type="button" class="star-btn" onclick="setRating(3)">⭐</button>
+                    <button type="button" class="star-btn" onclick="setRating(2)">⭐</button>
+                    <button type="button" class="star-btn" onclick="setRating(1)">⭐</button>
+                </div>
+                <div id="ratingText" style="color:#888;margin-top:5px;font-size:0.85rem">Wähle Sterne</div>
+            </div>
+            <div class="form-group">
+                <label>Bild</label>
                 <div class="image-upload" onclick="document.getElementById('placeImage').click()">
                     <input type="file" id="placeImage" accept="image/*" onchange="previewImage(this)">
                     <span>📷 Bild auswählen</span>
                 </div>
                 <img id="imagePreview">
             </div>
-            <button class="btn btn-primary" style="width:100%;padding:1rem;font-size:1.1rem" onclick="doAddPlace()">HINZUFÜGEN</button>
+            <button class="btn-submit" onclick="doAddPlace()">Hinzufügen</button>
         </div>
     </div>
+    
+    <!-- Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="detailName">Döner Name</h2>
+                <button class="close-btn" onclick="closeModal('detailModal')">×</button>
+            </div>
+            <img id="detailImage" class="detail-image" style="display:none">
+            <div id="detailPrice" class="detail-price"></div>
+            <div class="detail-row">
+                <span class="detail-stars" id="detailStars"></span>
+                <span id="detailRating" style="color:#888"></span>
+            </div>
+            <div class="detail-row">📍 <span id="detailLocation"></span></div>
+            <div class="detail-row" id="detailAddressRow" style="display:none">📮 <span id="detailAddress"></span></div>
+            <div class="detail-row" id="detailDescRow">📝 <span id="detailDesc"></span></div>
+            <div class="detail-row" style="color:#888;font-size:0.85rem">👤 <span id="detailAuthor"></span></div>
+            <button class="btn-submit" style="margin-top:15px" onclick="showOnMapFromDetail()">🗺️ Auf Karte zeigen</button>
+            <button class="btn-delete" id="deleteBtn" onclick="doDelete()" style="display:none">🗑️ Löschen</button>
+        </div>
+    </div>
+    
     <div class="toast" id="toast"></div>
+    
     <script>
+        // Config
         var ADMIN_PASS = 'admin123';
-        var currentUser = localStorage.getItem('doenerUser') ? JSON.parse(localStorage.getItem('doenerUser')) : null;
+        var currentUser = null;
         var selectedRating = 0;
-        var places = localStorage.getItem('doenerPlaces') ? JSON.parse(localStorage.getItem('doenerPlaces')) : [
-            { id: 1, name: 'Döner Palace', ort: 'Frankfurt', preis: 5.50, rating: 4.8, reviews: 23, desc: 'Der beste!', autor: 'Admin', lat: 50.1109, lng: 8.6821 }
-        ];
+        var selectedPlaceId = null;
         var map = null;
         
-        function init() {
-            updateUI();
+        // Initial Data
+        var places = JSON.parse(localStorage.getItem('doenerPlaces')) || [
+            { id: 1, name: 'Döner Palace', ort: 'Frankfurt', preis: 5.50, rating: 4.8, desc: 'Der beste Döner in Frankfurt!', autor: 'Admin', lat: 50.1109, lng: 8.6821 },
+            { id: 2, name: "Kadir's Döner", ort: 'Berlin', preis: 4.50, rating: 4.5, desc: 'Super günstig und lecker!', autor: 'Admin', lat: 52.5218, lng: 13.4135 },
+            { id: 3, name: 'Döner Haus', ort: 'Hamburg', preis: 6.00, rating: 4.2, desc: 'Nachts offen, perfekt nach dem Ausgang.', autor: 'User', lat: 53.5511, lng: 9.9937 }
+        ];
+        
+        // Init
+        window.onload = function() {
+            loadUser();
             renderPlaces();
             updateStats();
+            initMap();
+        };
+        
+        // User Functions
+        function loadUser() {
+            var saved = localStorage.getItem('doenerUser');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                updateUserUI();
+            }
+        }
+        
+        function updateUserUI() {
+            var userInfo = document.getElementById('userInfo');
+            var loginBtn = document.getElementById('loginBtn');
+            var addBtn = document.getElementById('addBtn');
+            var badge = document.getElementById('userBadge');
+            
+            if (currentUser) {
+                userInfo.classList.add('active');
+                loginBtn.classList.add('hidden');
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+                badge.style.display = currentUser.isAdmin ? 'inline' : 'none';
+                addBtn.classList.toggle('active', currentUser.isAdmin);
+            } else {
+                userInfo.classList.remove('active');
+                loginBtn.classList.remove('hidden');
+                addBtn.classList.remove('active');
+            }
+            renderPlaces();
+        }
+        
+        function openLogin() {
+            document.getElementById('loginModal').classList.add('active');
         }
         
         function doLogin() {
             var name = document.getElementById('loginUsername').value.trim();
             var pass = document.getElementById('loginPassword').value;
+            
             if (!name) { showToast('Namen eingeben!'); return; }
+            
             currentUser = { name: name, isAdmin: pass === ADMIN_PASS };
             localStorage.setItem('doenerUser', JSON.stringify(currentUser));
-            updateUI();
-            hideModal('loginModal');
-            showToast('Willkommen ' + name + '!');
+            
+            closeModal('loginModal');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            updateUserUI();
+            showToast('Willkommen, ' + name + '!');
         }
         
         function logout() {
             currentUser = null;
             localStorage.removeItem('doenerUser');
-            updateUI();
+            updateUserUI();
+            showToast('Abgemeldet');
         }
         
-        function updateUI() {
-            var userInfo = document.getElementById('userInfo');
-            var loginBtn = document.getElementById('loginBtn');
-            var badge = document.getElementById('userBadge');
-            var addBtn = document.getElementById('addBtn');
-            
-            if (currentUser) {
-                userInfo.classList.add('active');
-                loginBtn.style.display = 'none';
-                document.getElementById('userName').textContent = currentUser.name;
-                document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
-                badge.style.display = currentUser.isAdmin ? 'inline' : 'none';
-                addBtn.classList.toggle('hidden', !currentUser.isAdmin);
-            } else {
-                userInfo.classList.remove('active');
-                loginBtn.style.display = 'block';
-                addBtn.classList.add('hidden');
-            }
-        }
-        
+        // Place Functions
         function renderPlaces() {
+            var grid = document.getElementById('placesGrid');
             var html = '';
+            
             for (var i = 0; i < places.length; i++) {
                 var p = places[i];
-                html += '<div class="place-card" onclick="alert(\'Details: ' + p.name + ' - ' + p.ort + '\')">';
-                html += '<div class="place-image">' + (p.bild ? \'<img src="\' + p.bild + \'" style="width:100%;height:100%;object-fit:cover">\' : '🥙') + '</div>';
+                var stars = '';
+                for (var s = 0; s < Math.round(p.rating); s++) stars += '⭐';
+                
+                html += '<div class="place-card" onclick="openDetail(' + p.id + ')">';
+                html += '<div class="place-image">' + (p.bild ? '<img src="' + p.bild + '" style="width:100%;height:100%;object-fit:cover">' : '🥙') + '</div>';
                 html += '<div class="place-content">';
-                html += '<div class="place-header"><div class="place-name">' + p.name + '</div><div class="place-rating">' + p.rating + ' ⭐</div></div>';
-                html += '<div class="place-location">📍 ' + p.ort + '</div>';
+                html += '<div class="place-header"><div class="place-name">' + p.name + '</div><div class="place-rating">' + p.rating + '</div></div>';
+                html += '<div class="place-meta">📍 ' + p.ort + '</div>';
                 if (p.preis) html += '<div class="place-price">💰 ' + parseFloat(p.preis).toFixed(2) + ' €</div>';
-                html += '<div class="place-description">' + p.desc.substring(0, 60) + '</div>';
-                html += '<div class="place-footer"><span>' + p.reviews + ' Bewertungen</span></div>';
+                html += '<div class="place-desc">' + (p.desc ? p.desc.substring(0, 50) + (p.desc.length > 50 ? '...' : '') : '') + '</div>';
                 html += '</div></div>';
             }
-            document.getElementById('placesGrid').innerHTML = html;
+            
+            grid.innerHTML = html;
+        }
+        
+        function updateStats() {
+            document.getElementById('totalPlaces').textContent = places.length;
+            var total = 0;
+            for (var i = 0; i < places.length; i++) total += places[i].rating;
+            var avg = places.length ? (total / places.length).toFixed(1) : 0;
+            document.getElementById('avgRating').textContent = avg;
+        }
+        
+        // Add Functions
+        function openAddModal() {
+            if (!currentUser) { showToast('Anmelden!'); openLogin(); return; }
+            if (!currentUser.isAdmin) { showToast('Nur Admins!'); return; }
+            document.getElementById('addModal').classList.add('active');
         }
         
         function setRating(val) {
             selectedRating = val;
-            var stars = document.querySelectorAll('.star-btn');
+            var stars = document.querySelectorAll('#addModal .star-btn');
             for (var i = 0; i < stars.length; i++) {
                 stars[i].classList.toggle('active', i < val);
             }
             var texts = ['', '1 Stern', '2 Sterne', '3 Sterne', '4 Sterne', '5 Sterne'];
             document.getElementById('ratingText').textContent = texts[val];
         }
-        
-        function doAddPlace() {
-            console.log('doAddPlace called');
-            if (!currentUser) { showToast('Erst anmelden!'); return; }
-            if (!currentUser.isAdmin) { showToast('Nur Admins!'); return; }
-            
-            var name = document.getElementById('placeName').value.trim();
-            var ort = document.getElementById('placeLocation').value.trim();
-            
-            console.log('name:', name, 'ort:', ort, 'rating:', selectedRating);
-            
-            if (!name) { showToast('Name eingeben!'); return; }
-            if (!ort) { showToast('Ort eingeben!'); return; }
-            if (selectedRating === 0) { showToast('Sterne auswählen!'); return; }
-            
-            var newPlace = {
-                id: Date.now(),
-                name: name,
-                ort: ort,
-                preis: document.getElementById('placePrice').value || null,
-                desc: document.getElementById('placeDescription').value.trim(),
-                rating: selectedRating,
-                reviews: 1,
-                autor: currentUser.name,
-                lat: 50.1109 + (Math.random() - 0.5) * 0.2,
-                lng: 8.6821 + (Math.random() - 0.5) * 0.2
-            };
-            
-            places.unshift(newPlace);
-            localStorage.setItem('doenerPlaces', JSON.stringify(places));
-            renderPlaces();
-            updateStats();
-            hideModal('addModal');
-            resetForm();
-            showToast('Döner hinzugefügt!');
-        }
-        
-        function resetForm() {
-            document.getElementById('placeName').value = '';
-            document.getElementById('placeLocation').value = '';
-            document.getElementById('placePrice').value = '';
-            document.getElementById('placeDescription').value = '';
-            document.getElementById('placeImage').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            selectedRating = 0;
-            setRating(0);
-        }
-        
-        function updateStats() {
-            document.getElementById('totalPlaces').textContent = places.length;
-            var totalReviews = 0;
-            for (var i = 0; i < places.length; i++) totalReviews += places[i].reviews;
-            document.getElementById('totalReviews').textContent = totalReviews;
-            var avg = places.length > 0 ? (places.reduce(function(s, p) { return s + p.rating; }, 0) / places.length).toFixed(1) : 0;
-            document.getElementById('avgRating').textContent = avg;
-        }
-        
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-            document.querySelector('.tab[onclick="switchTab(\\\'' + tab + '\\\')"]').classList.add('active');
-            document.getElementById('listView').style.display = tab === 'list' ? 'block' : 'none';
-            document.getElementById('mapView').style.display = tab === 'map' ? 'block' : 'none';
-            if (tab === 'map' && !map) setTimeout(initMap, 100);
-        }
-        
-        function initMap() {
-            if (map) return;
-            map = L.map('map').setView([50.1109, 8.6821], 6);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(map);
-            places.forEach(function(p) {
-                L.marker([p.lat, p.lng]).addTo(map).bindPopup('<b>' + p.name + '</b><br>' + p.ort);
-            });
-        }
-        
-        function showAddModal() {
-            if (!currentUser) { showToast('Anmelden!'); showModal('loginModal'); return; }
-            if (!currentUser.isAdmin) { showToast('Nur Admins!'); return; }
-            showModal('addModal');
-        }
-        
-        function showModal(id) { document.getElementById(id).classList.add('active'); }
-        function hideModal(id) { document.getElementById(id).classList.remove('active'); }
         
         function previewImage(input) {
             var file = input.files[0];
@@ -305,14 +390,142 @@
             }
         }
         
+        function doAddPlace() {
+            var name = document.getElementById('placeName').value.trim();
+            var ort = document.getElementById('placeLocation').value.trim();
+            
+            if (!name) { showToast('Name eingeben!'); return; }
+            if (!ort) { showToast('Ort eingeben!'); return; }
+            if (selectedRating === 0) { showToast('Sterne auswählen!'); return; }
+            
+            var newPlace = {
+                id: Date.now(),
+                name: name,
+                ort: ort,
+                preis: document.getElementById('placePrice').value || null,
+                desc: document.getElementById('placeDesc').value.trim(),
+                rating: selectedRating,
+                autor: currentUser.name,
+                lat: 50.1109 + (Math.random() - 0.5) * 0.2,
+                lng: 8.6821 + (Math.random() - 0.5) * 0.2
+            };
+            
+            places.unshift(newPlace);
+            localStorage.setItem('doenerPlaces', JSON.stringify(places));
+            
+            closeModal('addModal');
+            resetAddForm();
+            renderPlaces();
+            updateStats();
+            showToast('Döner hinzugefügt!');
+        }
+        
+        function resetAddForm() {
+            document.getElementById('placeName').value = '';
+            document.getElementById('placeLocation').value = '';
+            document.getElementById('placePrice').value = '';
+            document.getElementById('placeDesc').value = '';
+            document.getElementById('placeImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            selectedRating = 0;
+            setRating(0);
+        }
+        
+        // Detail Functions
+        function openDetail(id) {
+            var p = null;
+            for (var i = 0; i < places.length; i++) {
+                if (places[i].id === id) { p = places[i]; break; }
+            }
+            if (!p) return;
+            
+            selectedPlaceId = id;
+            document.getElementById('detailName').textContent = p.name;
+            document.getElementById('detailLocation').textContent = p.ort;
+            document.getElementById('detailStars').textContent = '⭐'.repeat(Math.round(p.rating));
+            document.getElementById('detailRating').textContent = '(' + p.rating + ')';
+            document.getElementById('detailDesc').textContent = p.desc || '-';
+            document.getElementById('detailAuthor').textContent = 'Eingetragen von ' + p.autor;
+            
+            var priceEl = document.getElementById('detailPrice');
+            if (p.preis) { priceEl.textContent = parseFloat(p.preis).toFixed(2) + ' €'; priceEl.style.display = 'block'; }
+            else { priceEl.style.display = 'none'; }
+            
+            var img = document.getElementById('detailImage');
+            if (p.bild) { img.src = p.bild; img.style.display = 'block'; }
+            else { img.style.display = 'none'; }
+            
+            var deleteBtn = document.getElementById('deleteBtn');
+            deleteBtn.style.display = (currentUser && currentUser.isAdmin) ? 'block' : 'none';
+            
+            document.getElementById('detailModal').classList.add('active');
+        }
+        
+        function doDelete() {
+            if (!currentUser || !currentUser.isAdmin) return;
+            if (confirm('Diesen Döner wirklich löschen?')) {
+                places = places.filter(function(p) { return p.id !== selectedPlaceId; });
+                localStorage.setItem('doenerPlaces', JSON.stringify(places));
+                closeModal('detailModal');
+                renderPlaces();
+                updateStats();
+                showToast('Gelöscht!');
+            }
+        }
+        
+        function showOnMapFromDetail() {
+            showMap();
+            var p = null;
+            for (var i = 0; i < places.length; i++) {
+                if (places[i].id === selectedPlaceId) { p = places[i]; break; }
+            }
+            if (p && map) {
+                map.setView([p.lat, p.lng], 14);
+                showToast(p.name + ' auf der Karte');
+            }
+        }
+        
+        // Map Functions
+        function showList() {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.querySelectorAll('.tab')[1].classList.remove('active');
+            document.getElementById('listView').style.display = 'block';
+            document.getElementById('map').classList.remove('active');
+        }
+        
+        function showMap() {
+            document.querySelectorAll('.tab')[0].classList.remove('active');
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('listView').style.display = 'none';
+            document.getElementById('map').classList.add('active');
+            if (!map) initMap();
+            setTimeout(function() { map.invalidateSize(); }, 100);
+        }
+        
+        function initMap() {
+            map = L.map('map').setView([50.1109, 8.6821], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            for (var i = 0; i < places.length; i++) {
+                var p = places[i];
+                L.marker([p.lat, p.lng]).addTo(map).bindPopup('<b>' + p.name + '</b><br>' + p.ort + '<br>' + p.rating + ' ⭐');
+            }
+        }
+        
+        // Modal Functions
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        // Toast
         function showToast(msg) {
             var t = document.getElementById('toast');
             t.textContent = msg;
             t.classList.add('show');
             setTimeout(function() { t.classList.remove('show'); }, 3000);
         }
-        
-        init();
     </script>
 </body>
 </html>
